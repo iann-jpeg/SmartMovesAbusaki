@@ -4,7 +4,7 @@ import {
 } from "lucide-react";
 import { Seo } from "@/components/Seo";
 import { SectionHeading } from "@/components/SectionHeading";
-import { divisions, brands, site } from "@/config/site";
+import { divisions, brands, heroImage, site } from "@/config/site";
 
 const divisionIcons = [Cpu, BookOpen, GraduationCap, Sprout];
 
