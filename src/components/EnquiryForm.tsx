@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { enquiryCategories } from "@/config/site";
 
 const enquirySchema = z.object({
@@ -70,10 +70,15 @@ export function EnquiryForm({ defaultCategory = "general", heading, intro }: Enq
     setStatus("submitting");
     setServerMessage("");
     try {
-      const { data, error } = await supabase.functions.invoke("submit-enquiry", {
-        body: parsed.data,
+      const response = await fetch("/api/enquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(parsed.data),
       });
-      if (error) throw error;
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.message ?? "The enquiry could not be submitted.");
+      }
       if (data?.ok) {
         setStatus("success");
         setServerMessage(data.message ?? "Your enquiry has been received. We will get back to you.");
@@ -190,7 +195,7 @@ export function EnquiryForm({ defaultCategory = "general", heading, intro }: Enq
           />
           <span>
             I agree to my details being used to respond to this enquiry, as described in the{" "}
-            <a href="/privacy-policy" className="font-medium text-accent underline underline-offset-2">Privacy Policy</a>. <span className="text-destructive" aria-hidden>*</span>
+            <Link to="/privacy-policy" className="font-medium text-accent underline underline-offset-2">Privacy Policy</Link>. <span className="text-destructive" aria-hidden>*</span>
           </span>
         </label>
         {errors.consent && <p id="consent-error" className="mt-1 text-xs text-destructive">{errors.consent}</p>}
