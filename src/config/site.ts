@@ -43,6 +43,9 @@ export const navigation: NavItem[] = [
   { label: "Contact", href: "/contact" },
 ];
 
+export const heroImage =
+  "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1800&q=85";
+
 export type DivisionStatus = "Active" | "Developing" | "Planned";
 
 export interface Division {

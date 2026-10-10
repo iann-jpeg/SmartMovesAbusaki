@@ -63,7 +63,7 @@ export function Header() {
 
         <div className="hidden lg:block">
           <Link
-            to="/contact"
+            to="/contact?category=partnership"
             className="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
           >
             Work With Us
@@ -102,7 +102,7 @@ export function Header() {
             ))}
             <li className="pt-2">
               <Link
-                to="/contact"
+                to="/contact?category=partnership"
                 className="block rounded-md bg-accent px-3 py-2.5 text-center text-base font-semibold text-accent-foreground"
               >
                 Work With Us

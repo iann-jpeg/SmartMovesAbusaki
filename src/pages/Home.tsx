@@ -68,17 +68,20 @@ export default function Home() {
       <Seo path="/" />
 
       {/* Hero */}
-      <section className="border-b border-border bg-secondary/60">
-        <div className="section-container grid items-center gap-12 py-16 sm:py-24 lg:grid-cols-2">
+      <section
+        className="relative overflow-hidden border-b border-border bg-[#0B2347] bg-cover bg-center"
+        style={{ backgroundImage: `linear-gradient(90deg, rgba(11,35,71,0.96) 0%, rgba(11,35,71,0.88) 46%, rgba(11,35,71,0.58) 100%), url(${heroImage})` }}
+      >
+        <div className="section-container relative grid items-center gap-12 py-16 sm:py-24 lg:grid-cols-2">
           <div>
-            <p className="mb-4 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.18em] text-accent">
+            <p className="mb-4 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.18em] text-gold">
               <span className="gold-rule" aria-hidden />
               Building Businesses. Creating Opportunities.
             </p>
-            <h1 className="font-heading text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
+            <h1 className="font-heading text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl">
               Building Ideas Into Businesses That Move People Forward.
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/80">
               {site.name} is a Kenyan business group focused on developing practical solutions
               through technology, publishing, education and business development. We turn ideas
               into useful products and services that help people, organizations and communities
@@ -93,7 +96,7 @@ export default function Home() {
               </Link>
               <Link
                 to="/contact"
-                className="inline-flex items-center rounded-md border border-primary px-6 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                className="inline-flex items-center rounded-md border border-white/70 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-primary"
               >
                 Start a Conversation
               </Link>

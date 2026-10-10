@@ -6,6 +6,7 @@ import { z } from "zod";
 const app = express();
 const port = Number(process.env.PORT ?? 10000);
 const clientOrigin = process.env.CLIENT_ORIGIN;
+const adminToken = process.env.ADMIN_TOKEN;
 
 const enquirySchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -36,6 +37,37 @@ function getMongoClient() {
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
+});
+
+app.get("/api/admin/enquiries", async (req, res) => {
+  const authorization = req.get("authorization");
+  if (!adminToken || authorization !== `Bearer ${adminToken}`) {
+    return res.status(401).json({ ok: false, message: "Unauthorized." });
+  }
+
+  const page = Math.max(Number.parseInt(req.query.page?.toString() ?? "1", 10) || 1, 1);
+  const limit = Math.min(Math.max(Number.parseInt(req.query.limit?.toString() ?? "25", 10) || 25, 1), 100);
+
+  try {
+    const client = await getMongoClient();
+    const collection = client
+      .db(process.env.MONGODB_DATABASE ?? "smartmoves")
+      .collection("enquiries");
+    const [items, total] = await Promise.all([
+      collection
+        .find({}, { projection: { ip: 0, userAgent: 0 } })
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .toArray(),
+      collection.countDocuments(),
+    ]);
+
+    return res.json({ ok: true, items, page, limit, total });
+  } catch (error) {
+    console.error("Failed to load enquiries", error);
+    return res.status(500).json({ ok: false, message: "Could not load enquiries." });
+  }
 });
 
 app.post("/api/enquiries", async (req, res) => {

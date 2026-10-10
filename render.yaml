@@ -12,3 +12,5 @@ services:
         value: smartmoves
       - key: CLIENT_ORIGIN
         sync: false
+      - key: ADMIN_TOKEN
+        sync: false
