@@ -569,13 +569,17 @@ npm run dev
 
 ## Deployment
 
-The site is configured for Vercel. Add these environment variables in the Vercel
-project settings:
+The frontend is configured for Vercel and the backend runs as a Render web
+service. Add these variables to the relevant deployment:
 
 - `MONGODB_URI`: MongoDB Atlas connection string
 - `MONGODB_DATABASE`: database name (defaults to `smartmoves`)
+- `CLIENT_ORIGIN`: deployed frontend origin, for example
+  `https://smartmovesabusaki.co.ke`
+- `VITE_API_URL`: Render backend URL, for example
+  `https://smartmoves-backend.onrender.com` (Vercel frontend only)
 
-The contact form stores enquiries in the `enquiries` collection through the
-`/api/enquiries` serverless function. Configure MongoDB Atlas network access to
-allow Vercel's connections, or use the Atlas connection policy recommended for
-serverless applications.
+The Render service starts with `npm run start:backend`, exposes `/health`, and
+stores contact submissions in the `enquiries` MongoDB Atlas collection through
+`/api/enquiries`. Configure MongoDB Atlas network access to allow the Render
+service to connect.

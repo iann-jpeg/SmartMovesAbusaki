@@ -1,6 +1,11 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import cors from "cors";
+import express from "express";
 import { MongoClient } from "mongodb";
 import { z } from "zod";
+
+const app = express();
+const port = Number(process.env.PORT ?? 10000);
+const clientOrigin = process.env.CLIENT_ORIGIN;
 
 const enquirySchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -14,31 +19,29 @@ const enquirySchema = z.object({
   website: z.string().max(0).optional().or(z.literal("")),
 });
 
-type Enquiry = z.infer<typeof enquirySchema>;
+app.use(cors({
+  origin: clientOrigin ? clientOrigin.split(",").map((origin) => origin.trim()) : true,
+  methods: ["POST", "GET"],
+}));
+app.use(express.json({ limit: "32kb" }));
 
-let clientPromise: Promise<MongoClient> | undefined;
-
+let clientPromise;
 function getMongoClient() {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) throw new Error("MONGODB_URI is not configured.");
-  clientPromise ??= new MongoClient(uri).connect();
+  if (!process.env.MONGODB_URI) {
+    throw new Error("MONGODB_URI is not configured.");
+  }
+  clientPromise ??= new MongoClient(process.env.MONGODB_URI).connect();
   return clientPromise;
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    return res.status(405).json({ ok: false, message: "Method not allowed." });
-  }
+app.get("/health", (_req, res) => {
+  res.json({ ok: true });
+});
 
+app.post("/api/enquiries", async (req, res) => {
   const parsed = enquirySchema.safeParse(req.body);
-  if (!parsed.success) {
+  if (!parsed.success || parsed.data.website) {
     return res.status(400).json({ ok: false, message: "Please check the enquiry details and try again." });
-  }
-
-  const enquiry = parsed.data as Enquiry;
-  if (enquiry.website) {
-    return res.status(400).json({ ok: false, message: "Unable to submit this enquiry." });
   }
 
   try {
@@ -47,10 +50,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .db(process.env.MONGODB_DATABASE ?? "smartmoves")
       .collection("enquiries")
       .insertOne({
-        ...enquiry,
+        ...parsed.data,
         createdAt: new Date(),
-        userAgent: req.headers["user-agent"] ?? null,
-        ip: req.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim() ?? null,
+        userAgent: req.get("user-agent") ?? null,
+        ip: req.ip ?? null,
       });
 
     return res.status(201).json({
@@ -64,4 +67,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       message: "We could not submit your enquiry just now. Please try again later.",
     });
   }
-}
+});
+
+app.listen(port, "0.0.0.0", () => {
+  console.log(`SmartMoves backend listening on port ${port}`);
+});
