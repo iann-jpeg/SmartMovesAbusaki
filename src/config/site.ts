@@ -44,7 +44,12 @@ export const navigation: NavItem[] = [
 ];
 
 export const heroImage =
-  "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1800&q=85";
+  "https://commons.wikimedia.org/wiki/Special:FilePath/Nairobi%27s_Central_Business_District_Landmark_Skyscrapers..jpg?width=1800";
+
+export const heroImageCredit = {
+  label: "Nairobi CBD skyline photo",
+  href: "https://commons.wikimedia.org/wiki/File:Nairobi%27s_Central_Business_District_Landmark_Skyscrapers..jpg",
+} as const;
 
 export type DivisionStatus = "Active" | "Developing" | "Planned";
 

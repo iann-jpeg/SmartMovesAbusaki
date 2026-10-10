@@ -4,7 +4,7 @@ import {
 } from "lucide-react";
 import { Seo } from "@/components/Seo";
 import { SectionHeading } from "@/components/SectionHeading";
-import { divisions, brands, heroImage, site } from "@/config/site";
+import { divisions, brands, heroImage, heroImageCredit, site } from "@/config/site";
 
 const divisionIcons = [Cpu, BookOpen, GraduationCap, Sprout];
 
@@ -106,6 +106,14 @@ export default function Home() {
             <HeroVisual />
           </div>
         </div>
+        <a
+          href={heroImageCredit.href}
+          target="_blank"
+          rel="noreferrer"
+          className="absolute bottom-3 right-4 text-[10px] text-white/60 underline-offset-2 hover:text-white hover:underline"
+        >
+          {heroImageCredit.label}
+        </a>
       </section>
 
       {/* Company introduction */}
