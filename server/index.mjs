@@ -150,6 +150,7 @@ function loginRateLimit(req, res, next) {
 }
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
 app.post("/api/auth/login", loginRateLimit, async (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
