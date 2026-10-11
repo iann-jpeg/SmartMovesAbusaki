@@ -11,6 +11,8 @@ import Terms from "@/pages/Terms";
 import NotFound from "@/pages/NotFound";
 import Admin from "@/pages/Admin";
 import Login from "@/pages/Login";
+import EmployeePortal from "@/pages/EmployeePortal";
+import AdminPortal from "@/pages/AdminPortal";
 
 export default function App() {
   return (
@@ -27,6 +29,8 @@ export default function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/employee-portal" element={<EmployeePortal />} />
+          <Route path="/admin/portal" element={<AdminPortal />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

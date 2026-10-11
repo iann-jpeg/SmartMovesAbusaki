@@ -4,25 +4,38 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { Seo } from "@/components/Seo";
 
-type LoginMode = "partner" | "admin";
+type LoginMode = "partner" | "portal";
+const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
 export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [mode, setMode] = useState<LoginMode>(searchParams.get("role") === "admin" ? "admin" : "partner");
-  const [token, setToken] = useState("");
+  const [mode, setMode] = useState<LoginMode>(searchParams.get("role") === "admin" ? "portal" : "partner");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showToken, setShowToken] = useState(false);
   const [error, setError] = useState("");
 
-  function submitAdminLogin(event: FormEvent<HTMLFormElement>) {
+  async function submitPortalLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!token.trim()) {
-      setError("Enter your admin token to continue.");
+    if (!email.trim() || !password) {
+      setError("Enter your work email and password to continue.");
       return;
     }
-
-    sessionStorage.setItem("smartmoves_admin_token", token.trim());
-    navigate("/admin");
+    setError("");
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? "Unable to sign in.");
+      sessionStorage.setItem("smartmoves_employee_token", data.token);
+      navigate(data.user.role === "EMPLOYEE" ? "/employee-portal" : "/admin/portal");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Unable to sign in.");
+    }
   }
 
   function changeMode(nextMode: LoginMode) {
@@ -85,11 +98,11 @@ export default function Login() {
                   <button
                     type="button"
                     role="tab"
-                    aria-selected={mode === "admin"}
-                    onClick={() => changeMode("admin")}
-                    className={`rounded-lg px-3 py-3 text-sm font-semibold transition ${mode === "admin" ? "bg-[#c9a23f] text-[#211a11]" : "text-white/60 hover:text-white"}`}
+                    aria-selected={mode === "portal"}
+                    onClick={() => changeMode("portal")}
+                    className={`rounded-lg px-3 py-3 text-sm font-semibold transition ${mode === "portal" ? "bg-[#c9a23f] text-[#211a11]" : "text-white/60 hover:text-white"}`}
                   >
-                    Admin
+                    Employee Portal
                   </button>
                 </div>
 
@@ -110,33 +123,43 @@ export default function Login() {
                     </Link>
                   </div>
                 ) : (
-                  <form className="mt-8" onSubmit={submitAdminLogin}>
+                  <form className="mt-8" onSubmit={submitPortalLogin}>
                     <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#c9a878]/30 bg-[#c9a23f]/10 text-[#e5c77a]">
                       <ShieldCheck className="h-7 w-7" aria-hidden />
                     </div>
-                    <h3 className="font-heading text-2xl font-bold text-white">Private dashboard</h3>
+                    <h3 className="font-heading text-2xl font-bold text-white">Your work portal</h3>
                     <p className="mt-3 text-sm leading-relaxed text-white/60">
-                      Use the administrator token configured on your Render service to view submissions.
+                      Sign in with the account created for you by your SmartMoves administrator.
                     </p>
-                    <label htmlFor="admin-token" className="mt-7 block text-sm font-medium text-white/80">Admin token</label>
+                    <label htmlFor="portal-email" className="mt-7 block text-sm font-medium text-white/80">Work email</label>
+                    <input
+                      id="portal-email"
+                      type="email"
+                      value={email}
+                      onChange={(event) => { setEmail(event.target.value); setError(""); }}
+                      className="mt-2 w-full rounded-xl border border-[#c9a878]/40 bg-black/20 px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#e5c77a] focus:ring-1 focus:ring-[#e5c77a]"
+                      placeholder="name@smartmoves.co.ke"
+                      autoComplete="username"
+                    />
+                    <label htmlFor="portal-password" className="mt-4 block text-sm font-medium text-white/80">Password</label>
                     <div className="relative mt-2">
                       <input
-                        id="admin-token"
+                        id="portal-password"
                         type={showToken ? "text" : "password"}
-                        value={token}
+                        value={password}
                         onChange={(event) => {
-                          setToken(event.target.value);
+                          setPassword(event.target.value);
                           setError("");
                         }}
                         className="w-full rounded-xl border border-[#c9a878]/40 bg-black/20 px-4 py-3.5 pr-12 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#e5c77a] focus:ring-1 focus:ring-[#e5c77a]"
-                        placeholder="Enter your admin token"
+                        placeholder="Enter your password"
                         autoComplete="current-password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowToken((visible) => !visible)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-white/50 hover:text-white"
-                        aria-label={showToken ? "Hide admin token" : "Show admin token"}
+                        aria-label={showToken ? "Hide password" : "Show password"}
                       >
                         {showToken ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
                       </button>
