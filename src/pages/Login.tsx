@@ -7,6 +7,18 @@ import { Seo } from "@/components/Seo";
 type LoginMode = "partner" | "employee" | "admin";
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
+async function readApiResponse(response: Response, fallbackMessage: string) {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      "The backend URL is not configured correctly. Set VITE_API_URL to your Render backend URL and redeploy the frontend.",
+    );
+  }
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message ?? fallbackMessage);
+  return data;
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -31,8 +43,7 @@ export default function Login() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message ?? "Unable to sign in.");
+      const data = await readApiResponse(response, "Unable to sign in.");
       sessionStorage.setItem("smartmoves_employee_token", data.token);
       navigate(data.user.role === "EMPLOYEE" ? "/employee-portal" : "/admin/portal");
     } catch (requestError) {
@@ -53,8 +64,7 @@ export default function Login() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: adminToken.trim() }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message ?? "Unable to sign in as Super Admin.");
+      const data = await readApiResponse(response, "Unable to sign in as Super Admin.");
       sessionStorage.setItem("smartmoves_employee_token", data.token);
       navigate("/admin/portal");
     } catch (requestError) {
