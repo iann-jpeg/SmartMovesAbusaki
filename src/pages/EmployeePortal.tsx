@@ -13,7 +13,7 @@ interface PortalUser {
 }
 interface Illustration { _id: string; title: string; brief: string; dueDate?: string; status: string; }
 
-const apiBaseUrl = (import.meta.env.VITE_API_URL ?? window.location.origin).replace(/\/$/, "");
+const apiBaseUrl = window.location.origin;
 
 export default function EmployeePortal() {
   const navigate = useNavigate();

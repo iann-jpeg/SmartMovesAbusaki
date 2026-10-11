@@ -609,8 +609,6 @@ from the server-side API function. Add these variables to the Vercel project:
 - `ADMIN_TOKEN`: private Super Admin login token
 - `ADMIN_EMAIL`: optional Super Admin email
 - `ADMIN_NAME`: optional Super Admin display name
-- `VITE_API_URL`: leave unset for the same-origin Vercel API, or set it to a
-  separate API origin when using the Render service
 
 The Vercel function exposes `/api/*`, including `/api/auth/admin-login`, and
 stores contact submissions in the `enquiries` MongoDB Atlas collection through

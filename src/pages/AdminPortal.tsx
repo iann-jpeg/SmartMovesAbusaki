@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Seo } from "@/components/Seo";
 
 interface Employee { id: string; name: string; email: string; role: string; department: string; employeeId: string; suspended: boolean; }
-const apiBaseUrl = (import.meta.env.VITE_API_URL ?? window.location.origin).replace(/\/$/, "");
+const apiBaseUrl = window.location.origin;
 
 export default function AdminPortal() {
   const navigate = useNavigate();

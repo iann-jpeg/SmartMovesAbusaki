@@ -70,7 +70,7 @@ export function EnquiryForm({ defaultCategory = "general", heading, intro }: Enq
     setStatus("submitting");
     setServerMessage("");
     try {
-      const apiBaseUrl = (import.meta.env.VITE_API_URL ?? window.location.origin).replace(/\/$/, "");
+      const apiBaseUrl = window.location.origin;
       const response = await fetch(`${apiBaseUrl}/api/enquiries`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

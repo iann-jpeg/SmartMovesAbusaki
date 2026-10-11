@@ -5,7 +5,7 @@ import { Logo } from "@/components/Logo";
 import { Seo } from "@/components/Seo";
 
 type LoginMode = "partner" | "employee" | "admin";
-const apiBaseUrl = (import.meta.env.VITE_API_URL ?? window.location.origin).replace(/\/$/, "");
+const apiBaseUrl = window.location.origin;
 
 async function readApiResponse(response: Response, fallbackMessage: string) {
   const contentType = response.headers.get("content-type") ?? "";
