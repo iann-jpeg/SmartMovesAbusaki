@@ -16,7 +16,7 @@ interface Enquiry {
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
 export default function Admin() {
-  const [token, setToken] = useState("");
+  const [token, setToken] = useState(() => sessionStorage.getItem("smartmoves_admin_token") ?? "");
   const [items, setItems] = useState<Enquiry[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -31,7 +31,10 @@ export default function Admin() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message ?? "Could not load enquiries.");
+      if (!response.ok) {
+        if (response.status === 401) sessionStorage.removeItem("smartmoves_admin_token");
+        throw new Error(data.message ?? "Could not load enquiries.");
+      }
       setItems(data.items);
       setPage(data.page);
       setTotal(data.total);
