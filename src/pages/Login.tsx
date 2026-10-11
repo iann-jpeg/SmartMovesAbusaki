@@ -221,9 +221,6 @@ export default function Login() {
                       <ShieldCheck className="h-7 w-7" aria-hidden />
                     </div>
                     <h3 className="font-heading text-2xl font-bold text-white">Super Admin portal</h3>
-                    <p className="mt-3 text-sm leading-relaxed text-white/60">
-                      Sign in with the private ADMIN_TOKEN configured on your Render backend.
-                    </p>
                     <label htmlFor="admin-token" className="mt-7 block text-sm font-medium text-white/80">Admin token</label>
                     <div className="relative mt-2">
                       <input
