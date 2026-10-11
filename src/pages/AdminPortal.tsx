@@ -17,7 +17,16 @@ export default function AdminPortal() {
   useEffect(() => {
     if (!token) { navigate("/login?role=admin", { replace: true }); return; }
     fetch(`${apiBaseUrl}/api/admin/employees`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.message ?? "Unable to load employees."); setEmployees(data.items); })
+      .then(async (response) => {
+        const data = await response.json();
+        if (response.status === 401) {
+          sessionStorage.removeItem("smartmoves_employee_token");
+          navigate("/login?role=admin", { replace: true });
+          return;
+        }
+        if (!response.ok) throw new Error(data.message ?? "Unable to load employees.");
+        setEmployees(data.items);
+      })
       .catch((requestError) => setError(requestError instanceof Error ? requestError.message : "Unable to load employees."));
   }, [navigate, token]);
 
