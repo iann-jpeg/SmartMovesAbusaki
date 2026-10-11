@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import {
-  Cpu, BookOpen, GraduationCap, Sprout, Target, Lightbulb, BookOpenCheck, Users, ArrowRight,
+  Cpu, BookOpen, GraduationCap, Sprout, Target, Lightbulb, BookOpenCheck, Users, ArrowRight, Handshake,
 } from "lucide-react";
 import { Seo } from "@/components/Seo";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -22,6 +22,14 @@ const audiences = [
   "Entrepreneurs and innovators",
   "Organizations seeking digital solutions",
   "Potential collaborators and institutional partners",
+];
+
+const ecosystemCards = [
+  { label: "Digital Solutions", shortLabel: "Technology", icon: Cpu, href: "/businesses#technology", tone: "from-[#0b5d3b] to-[#083b2a]" },
+  { label: "SmartMoves Books", shortLabel: "Publishing", icon: BookOpen, href: "/smartmoves-books", tone: "from-[#c9a23f] to-[#9b7627]" },
+  { label: "Workshops & Skills", shortLabel: "Education", icon: GraduationCap, href: "/workshops", tone: "from-[#1e5a8a] to-[#12395a]" },
+  { label: "Future Ventures", shortLabel: "Growth", icon: Sprout, href: "/businesses#ventures", tone: "from-[#426b4c] to-[#23432e]" },
+  { label: "Partner With Us", shortLabel: "Collaboration", icon: Handshake, href: "/contact?category=partnership", tone: "from-[#7c4b32] to-[#49291f]" },
 ];
 
 /** Original abstract visual: connected nodes representing linked business opportunities. */
@@ -114,6 +122,44 @@ export default function Home() {
         >
           {heroImageCredit.label}
         </a>
+      </section>
+
+      {/* SmartMoves ecosystem */}
+      <section className="overflow-hidden bg-[#082c3d] py-16 text-white sm:py-20">
+        <div className="section-container">
+          <SectionHeading
+            eyebrow="The SmartMoves Ecosystem"
+            title="One group. Many ways to move forward."
+            description="Explore the connected ideas, businesses and partnerships that shape our work."
+            align="center"
+            light
+          />
+          <div className="relative mx-auto mt-12 max-w-4xl">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,162,63,0.16),transparent_55%)]" aria-hidden />
+            <div className="relative grid grid-cols-2 justify-items-center gap-x-3 gap-y-[-1rem] sm:grid-cols-6 sm:gap-x-[-1rem]">
+              {ecosystemCards.map((card, index) => {
+                const Icon = card.icon;
+                const position = index < 3 ? "sm:col-span-2" : "sm:col-span-2 sm:col-start-2";
+                return (
+                  <Link
+                    key={card.label}
+                    to={card.href}
+                    className={`group relative flex aspect-[0.96] w-full max-w-[190px] items-center justify-center overflow-hidden bg-gradient-to-br ${card.tone} p-6 text-center transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/30 focus-visible:-translate-y-2 ${position} ${index === 3 ? "sm:col-start-2" : ""} ${index === 4 ? "sm:col-start-4" : ""}`}
+                    style={{ clipPath: "polygon(25% 4%, 75% 4%, 100% 25%, 100% 75%, 75% 96%, 25% 96%, 0 75%, 0 25%)" }}
+                  >
+                    <span className="absolute inset-0 bg-[linear-gradient(135deg,transparent_40%,rgba(255,255,255,0.16))] opacity-70" aria-hidden />
+                    <span className="relative flex flex-col items-center gap-3">
+                      <Icon className="h-8 w-8 text-white/90 transition-transform group-hover:scale-110" aria-hidden />
+                      <span className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-white/65">{card.shortLabel}</span>
+                      <span className="font-heading text-sm font-extrabold text-white sm:text-base">{card.label}</span>
+                      <span className="rounded-sm border border-white/60 px-2 py-1 text-[0.55rem] font-bold uppercase tracking-wider text-white">Explore</span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Company introduction */}
