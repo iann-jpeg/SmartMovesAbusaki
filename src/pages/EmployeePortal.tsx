@@ -11,6 +11,7 @@ interface PortalUser {
   employeeId: string;
   suspended: boolean;
 }
+interface Illustration { _id: string; title: string; brief: string; dueDate?: string; status: string; }
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
@@ -18,6 +19,7 @@ export default function EmployeePortal() {
   const navigate = useNavigate();
   const [user, setUser] = useState<PortalUser | null>(null);
   const [error, setError] = useState("");
+  const [illustrations, setIllustrations] = useState<Illustration[]>([]);
   const token = sessionStorage.getItem("smartmoves_employee_token") ?? "";
 
   useEffect(() => {
@@ -30,6 +32,11 @@ export default function EmployeePortal() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.message ?? "Your session is no longer valid.");
         setUser(data.user);
+        if (data.user.role === "ILLUSTRATOR") {
+          const assignments = await fetch(`${apiBaseUrl}/api/illustrations/me`, { headers: { Authorization: `Bearer ${token}` } });
+          const assignmentData = await assignments.json();
+          if (assignments.ok) setIllustrations(assignmentData.items);
+        }
       })
       .catch((requestError) => {
         sessionStorage.removeItem("smartmoves_employee_token");
@@ -44,6 +51,16 @@ export default function EmployeePortal() {
     }).catch(() => undefined);
     sessionStorage.removeItem("smartmoves_employee_token");
     navigate("/login", { replace: true });
+  }
+
+  async function updateIllustration(id: string, status: string) {
+    const response = await fetch(`${apiBaseUrl}/api/illustrations/${id}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ status }),
+    });
+    const data = await response.json();
+    if (response.ok) setIllustrations((items) => items.map((item) => item._id === id ? data.item : item));
   }
 
   if (error) {
@@ -77,11 +94,15 @@ export default function EmployeePortal() {
               <div><dt className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Department</dt><dd className="mt-1 text-sm">{user.department || "Not assigned"}</dd></div>
             </dl>
           </article>
-          <article className="card-surface bg-secondary/50 p-6">
+          {user.role === "ILLUSTRATOR" ? <article className="card-surface bg-secondary/50 p-6 md:col-span-3">
+            <h2 className="font-heading text-xl font-bold text-primary">Illustration assignments</h2>
+            <p className="mt-2 text-sm text-muted-foreground">Review your briefs, update progress and keep delivery dates visible.</p>
+            <div className="mt-5 space-y-3">{illustrations.length === 0 ? <p className="text-sm text-muted-foreground">No illustration assignments yet.</p> : illustrations.map((item) => <div key={item._id} className="rounded-md border border-border bg-background p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-semibold">{item.title}</h3><p className="mt-1 text-sm text-muted-foreground">{item.brief}</p></div><select value={item.status} onChange={(event) => void updateIllustration(item._id, event.target.value)} className="rounded-md border border-input bg-input-background px-2 py-1 text-xs"><option value="ASSIGNED">Assigned</option><option value="IN_PROGRESS">In progress</option><option value="IN_REVIEW">In review</option><option value="COMPLETED">Completed</option></select></div>{item.dueDate && <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-accent">Due {item.dueDate}</p>}</div>)}</div>
+          </article> : <article className="card-surface bg-secondary/50 p-6">
             <h2 className="font-heading text-xl font-bold text-primary">Coming next</h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Leave requests, assigned tasks, announcements and HR support will appear here as your administrator enables each module.</p>
             <Link to="/contact" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-accent">Contact HR <ArrowRight className="h-4 w-4" aria-hidden /></Link>
-          </article>
+          </article>}
         </div>
       </section>
     </>

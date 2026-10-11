@@ -7,6 +7,8 @@ The Render backend now provides MongoDB-backed employee accounts and server-side
 - `POST /api/auth/login`, `POST /api/auth/logout`, and `GET /api/me`
 - `GET /api/admin/employees`, `POST /api/admin/employees`, and `PATCH /api/admin/employees/:id/suspend`
 - `GET /api/employees/me` (the authenticated user's own profile)
+- `GET /api/illustrations/me` and `PATCH /api/illustrations/:id/status` (illustrator assignments)
+- `GET /api/admin/illustrations` and `POST /api/admin/illustrations` (Super Admin assignment management)
 
 Send the returned login token as `Authorization: Bearer <token>`. Passwords are
 hashed with Node's `crypto.scrypt`; session tokens are random, stored only as
@@ -17,6 +19,10 @@ Employee accounts must be provisioned by an elevated account. For first
 activation only, set `BOOTSTRAP_ADMIN_ENABLED=true` together with a
 12-character-or-longer `BOOTSTRAP_ADMIN_PASSWORD` and the corresponding email,
 then disable it and remove the bootstrap secret after the account is created.
+Supported roles include `SUPER_ADMIN`, `HR_MANAGER`, `DEPARTMENT_MANAGER`,
+`FINANCE`, `ILLUSTRATOR`, and `EMPLOYEE`. Illustrators have a dedicated
+assignment workspace at `/employee-portal`.
+
 There is deliberately no email invitation, password-reset, or account recovery
 flow yet; those are operational limitations, not insecure fallbacks. Do not
 use placeholder credentials in production.

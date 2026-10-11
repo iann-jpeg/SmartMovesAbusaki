@@ -12,7 +12,7 @@ const databaseName = process.env.MONGODB_DATABASE ?? "smartmoves";
 const clientOrigin = process.env.CLIENT_ORIGIN;
 const adminToken = process.env.ADMIN_TOKEN;
 const sessionLifetimeMs = 7 * 24 * 60 * 60 * 1000;
-const roles = ["SUPER_ADMIN", "HR_MANAGER", "DEPARTMENT_MANAGER", "FINANCE", "EMPLOYEE"];
+const roles = ["SUPER_ADMIN", "HR_MANAGER", "DEPARTMENT_MANAGER", "FINANCE", "ILLUSTRATOR", "EMPLOYEE"];
 const superAdminRoles = ["SUPER_ADMIN"];
 
 const enquirySchema = z.object({
@@ -39,6 +39,13 @@ const employeeSchema = z.object({
   employeeId: z.string().trim().max(50).optional().or(z.literal("")),
 });
 const suspensionSchema = z.object({ suspended: z.boolean().default(true) });
+const illustrationAssignmentSchema = z.object({
+  title: z.string().trim().min(1).max(160),
+  brief: z.string().trim().min(1).max(3000),
+  dueDate: z.string().date().optional().or(z.literal("")),
+  illustratorId: z.string().trim().min(1),
+});
+const illustrationStatusSchema = z.object({ status: z.enum(["ASSIGNED", "IN_PROGRESS", "IN_REVIEW", "COMPLETED"]) });
 
 app.use(cors({
   origin: clientOrigin ? clientOrigin.split(",").map((origin) => origin.trim()) : true,
@@ -54,7 +61,7 @@ function getMongoClient() {
 }
 async function getCollections() {
   const db = (await getMongoClient()).db(databaseName);
-  return { users: db.collection("users"), sessions: db.collection("sessions") };
+  return { users: db.collection("users"), sessions: db.collection("sessions"), illustrations: db.collection("illustrationAssignments") };
 }
 function publicUser(user) {
   return {
@@ -172,6 +179,61 @@ app.post("/api/auth/logout", async (req, res) => {
 
 app.get("/api/me", requireRoles(roles), (req, res) => res.json({ ok: true, user: publicUser(req.user) }));
 app.get("/api/employees/me", requireRoles(roles), (req, res) => res.json({ ok: true, user: publicUser(req.user) }));
+
+app.get("/api/illustrations/me", requireRoles(["ILLUSTRATOR"]), async (req, res) => {
+  try {
+    const { illustrations } = await getCollections();
+    const items = await illustrations.find({ illustratorId: req.user._id }).sort({ dueDate: 1, createdAt: -1 }).toArray();
+    return res.json({ ok: true, items });
+  } catch (error) {
+    console.error("Failed to load illustration assignments", error);
+    return res.status(500).json({ ok: false, message: "Could not load illustration assignments." });
+  }
+});
+
+app.patch("/api/illustrations/:id/status", requireRoles(["ILLUSTRATOR"]), async (req, res) => {
+  const parsed = illustrationStatusSchema.safeParse(req.body);
+  if (!parsed.success || !ObjectId.isValid(req.params.id)) return res.status(400).json({ ok: false, message: "Invalid illustration status." });
+  try {
+    const { illustrations } = await getCollections();
+    const result = await illustrations.findOneAndUpdate(
+      { _id: new ObjectId(req.params.id), illustratorId: req.user._id },
+      { $set: { status: parsed.data.status, updatedAt: new Date() } },
+      { returnDocument: "after" },
+    );
+    if (!result) return res.status(404).json({ ok: false, message: "Assignment not found." });
+    return res.json({ ok: true, item: result });
+  } catch (error) {
+    console.error("Failed to update illustration assignment", error);
+    return res.status(500).json({ ok: false, message: "Could not update illustration assignment." });
+  }
+});
+
+app.get("/api/admin/illustrations", requireRoles(superAdminRoles), async (_req, res) => {
+  try {
+    const { illustrations } = await getCollections();
+    return res.json({ ok: true, items: await illustrations.find({}).sort({ createdAt: -1 }).toArray() });
+  } catch (error) {
+    console.error("Failed to load illustration assignments", error);
+    return res.status(500).json({ ok: false, message: "Could not load illustration assignments." });
+  }
+});
+
+app.post("/api/admin/illustrations", requireRoles(superAdminRoles), async (req, res) => {
+  const parsed = illustrationAssignmentSchema.safeParse(req.body);
+  if (!parsed.success || !ObjectId.isValid(parsed.data.illustratorId)) return res.status(400).json({ ok: false, message: "Invalid illustration assignment." });
+  try {
+    const { users, illustrations } = await getCollections();
+    const illustrator = await users.findOne({ _id: new ObjectId(parsed.data.illustratorId), role: "ILLUSTRATOR", suspended: { $ne: true } });
+    if (!illustrator) return res.status(400).json({ ok: false, message: "Select an active illustrator account." });
+    const item = { ...parsed.data, illustratorId: illustrator._id, status: "ASSIGNED", createdAt: new Date(), updatedAt: new Date() };
+    const result = await illustrations.insertOne(item);
+    return res.status(201).json({ ok: true, item: { ...item, _id: result.insertedId } });
+  } catch (error) {
+    console.error("Failed to create illustration assignment", error);
+    return res.status(500).json({ ok: false, message: "Could not create illustration assignment." });
+  }
+});
 
 app.get("/api/admin/employees", requireRoles(superAdminRoles), async (_req, res) => {
   try {
