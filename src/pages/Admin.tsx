@@ -13,7 +13,7 @@ interface Enquiry {
   createdAt: string;
 }
 
-const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "").includes("smartmovesabusaki.onrender.com")
+const apiBaseUrl = import.meta.env.PROD
   ? "https://smartmoves-backend.onrender.com"
   : (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
