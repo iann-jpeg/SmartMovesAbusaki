@@ -137,7 +137,10 @@ function requireRoles(allowedRoles) {
 
 const loginAttempts = new Map();
 function loginRateLimit(req, res, next) {
-  const key = `${req.ip}:${String(req.body?.email ?? "").trim().toLowerCase()}`;
+  const identity = req.path === "/admin-login"
+    ? "admin"
+    : String(req.body?.email ?? "").trim().toLowerCase();
+  const key = `${req.ip}:${identity}`;
   const now = Date.now();
   const record = loginAttempts.get(key);
   if (record && record.resetAt <= now) loginAttempts.delete(key);
@@ -195,6 +198,7 @@ app.post("/api/auth/admin-login", loginRateLimit, async (req, res) => {
     );
     const token = randomBytes(32).toString("base64url");
     await sessions.insertOne({ userId: result._id, tokenHash: tokenHash(token), createdAt: now, expiresAt: new Date(Date.now() + sessionLifetimeMs) });
+    loginAttempts.delete(`${req.ip}:admin`);
     return res.json({ ok: true, token, user: publicUser(result) });
   } catch (error) {
     console.error("Admin login failed", error);
