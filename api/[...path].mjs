@@ -1,8 +1,5 @@
-import { app } from "../server/index.mjs";
+import { handleApiRequest } from "./_express-handler.mjs";
 
 export default function handler(req, res) {
-  if (!req.url.startsWith("/api")) {
-    req.url = `/api${req.url.startsWith("/") ? req.url : `/${req.url}`}`;
-  }
-  return app(req, res);
+  return handleApiRequest(req, res);
 }
