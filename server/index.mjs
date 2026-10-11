@@ -116,12 +116,13 @@ function requireRoles(allowedRoles) {
     if (!token) return res.status(401).json({ ok: false, message: "Authentication required." });
     try {
       const { users, sessions } = await getCollections();
-      const session = await sessions.findOneAndDelete(
-        { tokenHash: tokenHash(token), expiresAt: { $lte: new Date() } },
-      );
-      if (session) return res.status(401).json({ ok: false, message: "Session expired." });
-      const activeSession = await sessions.findOne({ tokenHash: token, expiresAt: { $gt: new Date() } });
-      if (!activeSession) return res.status(401).json({ ok: false, message: "Invalid session." });
+      const sessionRecord = await sessions.findOne({ tokenHash: token });
+      if (!sessionRecord) return res.status(401).json({ ok: false, message: "Invalid session." });
+      if (sessionRecord.expiresAt <= new Date()) {
+        await sessions.deleteOne({ _id: sessionRecord._id });
+        return res.status(401).json({ ok: false, message: "Session expired." });
+      }
+      const activeSession = sessionRecord;
       const user = await users.findOne({ _id: activeSession.userId });
       if (!user || user.suspended) return res.status(403).json({ ok: false, message: "Account unavailable." });
       if (!allowedRoles.includes(user.role)) return res.status(403).json({ ok: false, message: "Forbidden." });
