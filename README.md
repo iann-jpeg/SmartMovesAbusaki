@@ -5,6 +5,7 @@
 The Render backend now provides MongoDB-backed employee accounts and server-side sessions:
 
 - `POST /api/auth/login`, `POST /api/auth/logout`, and `GET /api/me`
+- `POST /api/auth/admin-login` (exchanges the private `ADMIN_TOKEN` for a Super Admin session)
 - `GET /api/admin/employees`, `POST /api/admin/employees`, and `PATCH /api/admin/employees/:id/suspend`
 - `GET /api/employees/me` (the authenticated user's own profile)
 - `GET /api/illustrations/me` and `PATCH /api/illustrations/:id/status` (illustrator assignments)
@@ -22,6 +23,10 @@ then disable it and remove the bootstrap secret after the account is created.
 Supported roles include `SUPER_ADMIN`, `HR_MANAGER`, `DEPARTMENT_MANAGER`,
 `FINANCE`, `ILLUSTRATOR`, and `EMPLOYEE`. Illustrators have a dedicated
 assignment workspace at `/employee-portal`.
+
+The `/login` page has a separate **Admin** tab for the single Super Admin.
+It accepts the backend `ADMIN_TOKEN` and opens `/admin/portal`; the token is
+never used as an employee password or sent to employee APIs.
 
 There is deliberately no email invitation, password-reset, or account recovery
 flow yet; those are operational limitations, not insecure fallbacks. Do not

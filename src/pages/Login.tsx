@@ -4,24 +4,26 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { Seo } from "@/components/Seo";
 
-type LoginMode = "partner" | "portal";
+type LoginMode = "partner" | "employee" | "admin";
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
 export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [mode, setMode] = useState<LoginMode>(searchParams.get("role") === "admin" ? "portal" : "partner");
+  const [mode, setMode] = useState<LoginMode>(searchParams.get("role") === "admin" ? "admin" : "partner");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [adminToken, setAdminToken] = useState("");
   const [showToken, setShowToken] = useState(false);
   const [error, setError] = useState("");
 
-  async function submitPortalLogin(event: FormEvent<HTMLFormElement>) {
+  async function submitEmployeeLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!email.trim() || !password) {
       setError("Enter your work email and password to continue.");
       return;
     }
+
     setError("");
     try {
       const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
@@ -35,6 +37,28 @@ export default function Login() {
       navigate(data.user.role === "EMPLOYEE" ? "/employee-portal" : "/admin/portal");
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to sign in.");
+    }
+  }
+
+  async function submitAdminLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!adminToken.trim()) {
+      setError("Enter the ADMIN_TOKEN configured on your Render backend.");
+      return;
+    }
+    setError("");
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/auth/admin-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: adminToken.trim() }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? "Unable to sign in as Super Admin.");
+      sessionStorage.setItem("smartmoves_employee_token", data.token);
+      navigate("/admin/portal");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Unable to sign in as Super Admin.");
     }
   }
 
@@ -85,7 +109,7 @@ export default function Login() {
                   Continue your conversation with SmartMoves or access the private dashboard.
                 </p>
 
-                <div className="mt-8 grid grid-cols-2 rounded-xl border border-white/10 bg-black/20 p-1" role="tablist" aria-label="Login type">
+                <div className="mt-8 grid grid-cols-3 rounded-xl border border-white/10 bg-black/20 p-1" role="tablist" aria-label="Login type">
                   <button
                     type="button"
                     role="tab"
@@ -98,11 +122,20 @@ export default function Login() {
                   <button
                     type="button"
                     role="tab"
-                    aria-selected={mode === "portal"}
-                    onClick={() => changeMode("portal")}
-                    className={`rounded-lg px-3 py-3 text-sm font-semibold transition ${mode === "portal" ? "bg-[#c9a23f] text-[#211a11]" : "text-white/60 hover:text-white"}`}
+                    aria-selected={mode === "employee"}
+                    onClick={() => changeMode("employee")}
+                    className={`rounded-lg px-3 py-3 text-sm font-semibold transition ${mode === "employee" ? "bg-[#c9a23f] text-[#211a11]" : "text-white/60 hover:text-white"}`}
                   >
                     Employee Portal
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={mode === "admin"}
+                    onClick={() => changeMode("admin")}
+                    className={`rounded-lg px-3 py-3 text-sm font-semibold transition ${mode === "admin" ? "bg-[#c9a23f] text-[#211a11]" : "text-white/60 hover:text-white"}`}
+                  >
+                    Admin
                   </button>
                 </div>
 
@@ -122,8 +155,8 @@ export default function Login() {
                       Continue to Work With Us <ArrowRight className="h-4 w-4" aria-hidden />
                     </Link>
                   </div>
-                ) : (
-                  <form className="mt-8" onSubmit={submitPortalLogin}>
+                ) : mode === "employee" ? (
+                  <form className="mt-8" onSubmit={submitEmployeeLogin}>
                     <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#c9a878]/30 bg-[#c9a23f]/10 text-[#e5c77a]">
                       <ShieldCheck className="h-7 w-7" aria-hidden />
                     </div>
@@ -170,6 +203,35 @@ export default function Login() {
                       className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#c9a23f] px-5 py-3.5 text-sm font-bold text-[#211a11] transition hover:bg-[#e0bb5d] focus:outline-none focus:ring-2 focus:ring-[#e5c77a] focus:ring-offset-2 focus:ring-offset-[#171a1b]"
                     >
                       Sign in <ArrowRight className="h-4 w-4" aria-hidden />
+                    </button>
+                  </form>
+                ) : (
+                  <form className="mt-8" onSubmit={submitAdminLogin}>
+                    <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#c9a878]/30 bg-[#c9a23f]/10 text-[#e5c77a]">
+                      <ShieldCheck className="h-7 w-7" aria-hidden />
+                    </div>
+                    <h3 className="font-heading text-2xl font-bold text-white">Super Admin portal</h3>
+                    <p className="mt-3 text-sm leading-relaxed text-white/60">
+                      Sign in with the private ADMIN_TOKEN configured on your Render backend.
+                    </p>
+                    <label htmlFor="admin-token" className="mt-7 block text-sm font-medium text-white/80">Admin token</label>
+                    <div className="relative mt-2">
+                      <input
+                        id="admin-token"
+                        type={showToken ? "text" : "password"}
+                        value={adminToken}
+                        onChange={(event) => { setAdminToken(event.target.value); setError(""); }}
+                        className="w-full rounded-xl border border-[#c9a878]/40 bg-black/20 px-4 py-3.5 pr-12 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#e5c77a] focus:ring-1 focus:ring-[#e5c77a]"
+                        placeholder="Enter your admin token"
+                        autoComplete="current-password"
+                      />
+                      <button type="button" onClick={() => setShowToken((visible) => !visible)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-white/50 hover:text-white" aria-label={showToken ? "Hide admin token" : "Show admin token"}>
+                        {showToken ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
+                      </button>
+                    </div>
+                    {error && <p className="mt-2 text-sm text-red-300" role="alert">{error}</p>}
+                    <button type="submit" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#c9a23f] px-5 py-3.5 text-sm font-bold text-[#211a11] transition hover:bg-[#e0bb5d]">
+                      Enter Super Admin <ArrowRight className="h-4 w-4" aria-hidden />
                     </button>
                   </form>
                 )}

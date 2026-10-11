@@ -30,6 +30,7 @@ const loginSchema = z.object({
   email: z.string().trim().email().max(255),
   password: z.string().min(1).max(200),
 });
+const adminLoginSchema = z.object({ token: z.string().min(1).max(300) });
 const employeeSchema = z.object({
   name: z.string().trim().min(1).max(150),
   email: z.string().trim().email().max(255),
@@ -156,6 +157,32 @@ app.post("/api/auth/login", loginRateLimit, async (req, res) => {
       tokenHash: tokenHash(token),
       createdAt: new Date(),
       expiresAt: new Date(Date.now() + sessionLifetimeMs),
+    });
+
+    app.post("/api/auth/admin-login", loginRateLimit, async (req, res) => {
+      const parsed = adminLoginSchema.safeParse(req.body);
+      if (!parsed.success || !adminToken || parsed.data.token !== adminToken) {
+        return res.status(401).json({ ok: false, message: "Invalid admin token." });
+      }
+      try {
+        const { users, sessions } = await getCollections();
+        const email = process.env.ADMIN_EMAIL?.trim().toLowerCase() || "superadmin@smartmoves.local";
+        const now = new Date();
+        const result = await users.findOneAndUpdate(
+          { email },
+          {
+            $set: { name: process.env.ADMIN_NAME?.trim() || "SmartMoves Super Administrator", role: "SUPER_ADMIN", suspended: false, updatedAt: now },
+            $setOnInsert: { email, department: "Administration", employeeId: "ADMIN", createdAt: now, passwordHash: await hashPassword(randomBytes(32).toString("base64url")) },
+          },
+          { upsert: true, returnDocument: "after" },
+        );
+        const token = randomBytes(32).toString("base64url");
+        await sessions.insertOne({ userId: result._id, tokenHash: tokenHash(token), createdAt: now, expiresAt: new Date(Date.now() + sessionLifetimeMs) });
+        return res.json({ ok: true, token, user: publicUser(result) });
+      } catch (error) {
+        console.error("Admin login failed", error);
+        return res.status(500).json({ ok: false, message: "Admin login is temporarily unavailable." });
+      }
     });
     return res.json({ ok: true, token, user: publicUser(user) });
   } catch (error) {
