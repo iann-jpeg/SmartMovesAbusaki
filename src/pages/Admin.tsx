@@ -13,7 +13,7 @@ interface Enquiry {
   createdAt: string;
 }
 
-const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+const apiBaseUrl = (import.meta.env.VITE_API_URL ?? window.location.origin).replace(/\/$/, "");
 
 export default function Admin() {
   const [token, setToken] = useState(() => sessionStorage.getItem("smartmoves_admin_token") ?? "");

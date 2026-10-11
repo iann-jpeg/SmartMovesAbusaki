@@ -5,13 +5,13 @@ import { Logo } from "@/components/Logo";
 import { Seo } from "@/components/Seo";
 
 type LoginMode = "partner" | "employee" | "admin";
-const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+const apiBaseUrl = (import.meta.env.VITE_API_URL ?? window.location.origin).replace(/\/$/, "");
 
 async function readApiResponse(response: Response, fallbackMessage: string) {
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) {
     throw new Error(
-      "The backend URL is not configured correctly. Set VITE_API_URL to your Render backend URL and redeploy the frontend.",
+      "The SmartMoves API is not responding. Check the Vercel deployment and server environment variables.",
     );
   }
   const data = await response.json();

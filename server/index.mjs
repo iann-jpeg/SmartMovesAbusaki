@@ -376,6 +376,8 @@ async function bootstrapAdmin() {
   console.log("Bootstrap administrator created.");
 }
 
+export { app };
+
 async function start() {
   if (process.env.MONGODB_URI) {
     const { users, sessions } = await getCollections();
@@ -388,7 +390,9 @@ async function start() {
   }
   app.listen(port, "0.0.0.0", () => console.log(`SmartMoves backend listening on port ${port}`));
 }
-start().catch((error) => {
-  console.error("Backend startup failed:", error.message);
-  process.exit(1);
-});
+if (process.env.VERCEL !== "1") {
+  start().catch((error) => {
+    console.error("Backend startup failed:", error.message);
+    process.exit(1);
+  });
+}
