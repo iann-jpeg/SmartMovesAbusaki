@@ -601,14 +601,17 @@ npm run dev
 
 ## Deployment
 
-The frontend and API are configured for Vercel, with MongoDB Atlas accessed only
-from the server-side API function. Add these variables to the Vercel project:
+The frontend is configured for Vercel, the API runs as a Render Web Service,
+and MongoDB Atlas is accessed by the backend. Add these variables to the
+relevant deployment:
 
 - `MONGODB_URI`: MongoDB Atlas connection string
 - `MONGODB_DATABASE`: database name (defaults to `smartmoves`)
-- `ADMIN_TOKEN`: private Super Admin login token
-- `ADMIN_EMAIL`: optional Super Admin email
-- `ADMIN_NAME`: optional Super Admin display name
+- `ADMIN_TOKEN`: private Super Admin login token (Render)
+- `ADMIN_EMAIL`: optional Super Admin email (Render)
+- `ADMIN_NAME`: optional Super Admin display name (Render)
+- `CLIENT_ORIGIN`: `https://smart-moves-abusaki.vercel.app` (Render)
+- `VITE_API_URL`: `https://smartmoves-backend.onrender.com` (Vercel)
 
 The Vercel function exposes `/api/*`, including `/api/auth/admin-login`, and
 stores contact submissions in the `enquiries` MongoDB Atlas collection through
