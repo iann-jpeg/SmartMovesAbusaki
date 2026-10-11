@@ -14,6 +14,7 @@ const adminToken = process.env.ADMIN_TOKEN;
 const sessionLifetimeMs = 7 * 24 * 60 * 60 * 1000;
 const roles = ["SUPER_ADMIN", "HR_MANAGER", "DEPARTMENT_MANAGER", "FINANCE", "ILLUSTRATOR", "EMPLOYEE"];
 const superAdminRoles = ["SUPER_ADMIN"];
+const configuredOrigins = clientOrigin ? clientOrigin.split(",").map((origin) => origin.trim()).filter(Boolean) : [];
 
 const enquirySchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -49,7 +50,12 @@ const illustrationAssignmentSchema = z.object({
 const illustrationStatusSchema = z.object({ status: z.enum(["ASSIGNED", "IN_PROGRESS", "IN_REVIEW", "COMPLETED"]) });
 
 app.use(cors({
-  origin: clientOrigin ? clientOrigin.split(",").map((origin) => origin.trim()) : true,
+  origin: (origin, callback) => {
+    if (!origin || configuredOrigins.includes(origin) || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Origin is not allowed by CORS."));
+  },
   methods: ["POST", "GET", "PATCH"],
 }));
 app.use(express.json({ limit: "32kb" }));
