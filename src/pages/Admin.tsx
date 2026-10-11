@@ -13,7 +13,9 @@ interface Enquiry {
   createdAt: string;
 }
 
-const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "").includes("smartmovesabusaki.onrender.com")
+  ? "https://smartmoves-backend.onrender.com"
+  : (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
 export default function Admin() {
   const [token, setToken] = useState(() => sessionStorage.getItem("smartmoves_admin_token") ?? "");

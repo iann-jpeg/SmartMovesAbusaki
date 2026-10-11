@@ -70,7 +70,10 @@ export function EnquiryForm({ defaultCategory = "general", heading, intro }: Enq
     setStatus("submitting");
     setServerMessage("");
     try {
-      const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+      const configuredApiUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+      const apiBaseUrl = configuredApiUrl.includes("smartmovesabusaki.onrender.com")
+        ? "https://smartmoves-backend.onrender.com"
+        : configuredApiUrl;
       const response = await fetch(`${apiBaseUrl}/api/enquiries`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

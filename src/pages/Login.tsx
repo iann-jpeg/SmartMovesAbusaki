@@ -6,6 +6,9 @@ import { Seo } from "@/components/Seo";
 
 type LoginMode = "partner" | "employee" | "admin";
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+const resolvedApiBaseUrl = apiBaseUrl.includes("smartmovesabusaki.onrender.com")
+  ? "https://smartmoves-backend.onrender.com"
+  : apiBaseUrl;
 
 async function readApiResponse(response: Response, fallbackMessage: string) {
   const contentType = response.headers.get("content-type") ?? "";
@@ -38,7 +41,7 @@ export default function Login() {
 
     setError("");
     try {
-      const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
+      const response = await fetch(`${resolvedApiBaseUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -59,7 +62,7 @@ export default function Login() {
     }
     setError("");
     try {
-      const response = await fetch(`${apiBaseUrl}/api/auth/admin-login`, {
+      const response = await fetch(`${resolvedApiBaseUrl}/api/auth/admin-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: adminToken.trim() }),
