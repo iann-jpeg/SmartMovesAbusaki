@@ -607,7 +607,7 @@ service. Add these variables to the relevant deployment:
 - `MONGODB_URI`: MongoDB Atlas connection string
 - `MONGODB_DATABASE`: database name (defaults to `smartmoves`)
 - `CLIENT_ORIGIN`: deployed frontend origin, for example
-  `https://smartmovesabusaki.co.ke`
+  `https://smart-moves-abusaki.vercel.app`
 - `VITE_API_URL`: Render backend URL, for example
   `https://smartmoves-backend.onrender.com` (Vercel frontend only)
 

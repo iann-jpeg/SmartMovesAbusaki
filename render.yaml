@@ -11,6 +11,6 @@ services:
       - key: MONGODB_DATABASE
         value: smartmoves
       - key: CLIENT_ORIGIN
-        sync: false
+        value: https://smart-moves-abusaki.vercel.app
       - key: ADMIN_TOKEN
         sync: false

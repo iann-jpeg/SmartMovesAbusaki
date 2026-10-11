@@ -14,7 +14,10 @@ const adminToken = process.env.ADMIN_TOKEN;
 const sessionLifetimeMs = 7 * 24 * 60 * 60 * 1000;
 const roles = ["SUPER_ADMIN", "HR_MANAGER", "DEPARTMENT_MANAGER", "FINANCE", "ILLUSTRATOR", "EMPLOYEE"];
 const superAdminRoles = ["SUPER_ADMIN"];
-const configuredOrigins = clientOrigin ? clientOrigin.split(",").map((origin) => origin.trim()).filter(Boolean) : [];
+const configuredOrigins = [
+  "https://smart-moves-abusaki.vercel.app",
+  ...(clientOrigin ? clientOrigin.split(",").map((origin) => origin.trim()).filter(Boolean) : []),
+];
 
 const enquirySchema = z.object({
   name: z.string().trim().min(1).max(100),
