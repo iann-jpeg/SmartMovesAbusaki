@@ -12,6 +12,7 @@ export default function AdminPortal() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "EMPLOYEE", department: "", employeeId: "" });
 
   useEffect(() => {

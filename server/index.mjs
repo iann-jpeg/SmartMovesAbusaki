@@ -295,7 +295,12 @@ app.post("/api/admin/employees", requireRoles(superAdminRoles), async (req, res)
     };
     delete user.password;
     const result = await users.insertOne(user);
-    return res.status(201).json({ ok: true, user: publicUser({ ...user, _id: result.insertedId }) });
+    const storedUser = await users.findOne({ _id: result.insertedId });
+    if (!storedUser) {
+      console.error("Employee insert was acknowledged but the record could not be read back", result.insertedId);
+      return res.status(500).json({ ok: false, message: "Employee account could not be confirmed in the database." });
+    }
+    return res.status(201).json({ ok: true, user: publicUser(storedUser) });
   } catch (error) {
     if (error?.code === 11000) return res.status(409).json({ ok: false, message: "An account with that email already exists." });
     console.error("Failed to create employee", error);
